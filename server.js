@@ -13,15 +13,44 @@ var todoList = [
 ];
 
 // GET /api/todos
+app.get('/api/todos', function (req, res, nextFn) {
+    console.log(req.params)
+    res.send(`This is a list of all my to do items: ${res.send(todoList)}`)
+});
 
 // GET /api/todos/:id
 
+app.get('/api/todos/:id', function (req, res, nextFn) {
+
+    const todoItem = todoList.find(function(todo) {
+        if (todo.id.toString() === req.params.id) {
+            return res.send(todo);
+        }
+    });
+    console.log(todoItem)
+});
+
 // POST /api/todos
+
+app.post('/api/todos', function (req, res, nextFn) {
+    console.log(req.params)
+    res.send(`This is the main todo menu`)
+});
 
 // PUT /api/todos/:id
 
+app.put('/api/todos:id', function (req, res, nextFn) {
+    console.log(req.params)
+    res.send(`This is the main todo menu`)
+});
+
 // DELETE /api/todos/:id
 
+app.delete('/api/todos/:id', function (req, res, nextFn) {
+    console.log(req.params)
+    res.send(`This is the main todo menu`)
+});
+
 app.listen(3000, function(){
-    console.log('Todo List API is now listening on port 3000...');
+    console.log('You got lots to do on port 3000!');
 })
