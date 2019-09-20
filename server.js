@@ -34,21 +34,21 @@ app.get('/api/todos/:id', function (req, res, nextFn) {
 
 app.post('/api/todos', function (req, res, nextFn) {
     console.log(req.params)
-    res.send(`This is the main todo menu`)
+    res.send(`you posted to my todo list successfully.`)
 });
 
 // PUT /api/todos/:id
 
-app.put('/api/todos:id', function (req, res, nextFn) {
+app.put('/api/todos/:id', function (req, res, nextFn) {
     console.log(req.params)
-    res.send(`This is the main todo menu`)
+    res.send(`I put to my todo list successfully.`)
 });
 
 // DELETE /api/todos/:id
 
 app.delete('/api/todos/:id', function (req, res, nextFn) {
     console.log(req.params)
-    res.send(`This is the main todo menu`)
+    res.send(`I sent a delete request successfully.`)
 });
 
 app.listen(3000, function(){
