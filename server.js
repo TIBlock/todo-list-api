@@ -17,26 +17,22 @@ var todoList = [
 // GET /api/todos
 
 app.get('/api/todos', function (req, res, nextFn) {
-    console.log(req.params)
     res.send(`This is a list of all my to do items: ${res.send(todoList)}`)
 });
 
 // GET /api/todos/:id
 
 app.get('/api/todos/:id', function (req, res, nextFn) {
-    console.log(req.params);
     const todoItem = todoList.find(function(todo) {
         if (todo.id.toString() === req.params.id) {
             return res.send(todo);
         }
     });
-    console.log(todoItem)
 });
 
 // POST /api/todos
 
 app.post('/api/todos', function (req, res, nextFn) {
-    console.log(req.params.todo);
     newTodo = { 
         id: uuidv1(), 
         todo: req.body.todo,
@@ -49,8 +45,6 @@ app.post('/api/todos', function (req, res, nextFn) {
 // PUT /api/todos/:id
 
 app.put('/api/todos/:id', function (req, res, nextFn) {
-    console.log(req.params)
-    console.log(req.body.todo)
     const todoItem = todoList.find(function(todo) {
         if (todo.id === req.params.id) {
             let updatedTodo = {
