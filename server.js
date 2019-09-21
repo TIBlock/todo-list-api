@@ -1,5 +1,6 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var uuidv1 = require('uuid/v1');
 
 var app = express();
 app.use(bodyParser.json());
@@ -7,10 +8,17 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 var todoList = [
     {
-        id: 1,
-        todo: "Implement a REST API"
+        id: "7780a5d0-dc8d-11e9-8c15-3763a3a5062c",
+        todo: "Implement a REST API",
+        isComplete: false
     }
 ];
+
+let newTodo = {
+    id: uuidv1(),
+    todo: "test",
+    isComplete: false
+};
 
 // GET /api/todos
 app.get('/api/todos', function (req, res, nextFn) {
@@ -21,7 +29,7 @@ app.get('/api/todos', function (req, res, nextFn) {
 // GET /api/todos/:id
 
 app.get('/api/todos/:id', function (req, res, nextFn) {
-
+    console.log(req.params);
     const todoItem = todoList.find(function(todo) {
         if (todo.id.toString() === req.params.id) {
             return res.send(todo);
@@ -33,21 +41,49 @@ app.get('/api/todos/:id', function (req, res, nextFn) {
 // POST /api/todos
 
 app.post('/api/todos', function (req, res, nextFn) {
-    console.log(req.params)
-    res.send(`you posted to my todo list successfully.`)
+    console.log(req.params.todo);
+    newTodo = { 
+        id: uuidv1(), 
+        todo: req.body.todo,
+        isComplete: false,
+    };
+    todoList.push(newTodo);
+    res.send(`This is an updated list of all my to do items: ${res.send(todoList)}`)
 });
 
 // PUT /api/todos/:id
 
 app.put('/api/todos/:id', function (req, res, nextFn) {
     console.log(req.params)
-    res.send(`I put to my todo list successfully.`)
+    console.log(req.body.todo)
+    const todoItem = todoList.find(function(todo) {
+        if (todo.id === req.params.id) {
+            let updatedTodo = {
+                id: todo.id, 
+                todo: req.body.todo, 
+                isComplete: false,
+            }
+            todoList.push(updatedTodo)
+        }
+    });
+    res.send(`This is an updated list of all my to do items: ${res.send(todoList)}`)
 });
 
 // DELETE /api/todos/:id
 
 app.delete('/api/todos/:id', function (req, res, nextFn) {
     console.log(req.params)
+    const todoItem = todoList.find(function(todo) {
+        if (todo.id === req.params.id) {
+            let updatedTodo = {
+                id: todo.id, 
+                todo: req.body.todo, 
+                isComplete: false,
+            }
+            todoList.push(updatedTodo)
+        }
+    });
+
     res.send(`I sent a delete request successfully.`)
 });
 
