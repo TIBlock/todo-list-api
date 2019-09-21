@@ -14,13 +14,8 @@ var todoList = [
     }
 ];
 
-let newTodo = {
-    id: uuidv1(),
-    todo: "test",
-    isComplete: false
-};
-
 // GET /api/todos
+
 app.get('/api/todos', function (req, res, nextFn) {
     console.log(req.params)
     res.send(`This is a list of all my to do items: ${res.send(todoList)}`)
@@ -75,16 +70,11 @@ app.delete('/api/todos/:id', function (req, res, nextFn) {
     console.log(req.params)
     const todoItem = todoList.find(function(todo) {
         if (todo.id === req.params.id) {
-            let updatedTodo = {
-                id: todo.id, 
-                todo: req.body.todo, 
-                isComplete: false,
-            }
-            todoList.push(updatedTodo)
+            let todoIndex = todoList.indexOf(todo.id);
+            todoList.splice(todoIndex,1)
         }
     });
-
-    res.send(`I sent a delete request successfully.`)
+    res.send(`This is an updated list of all my to do items: ${res.send(todoList)}`)
 });
 
 app.listen(3000, function(){
