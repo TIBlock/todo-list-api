@@ -62,13 +62,15 @@ app.put('/api/todos/:id', function (req, res, nextFn) {
 
 app.delete('/api/todos/:id', function (req, res, nextFn) {
     console.log(req.params)
-    const todoItem = todoList.find(function(todo) {
-        if (todo.id === req.params.id) {
-            let todoIndex = todoList.indexOf(todo.id);
-            todoList.splice(todoIndex,1)
+    todoList = todoList.filter((todo) => {
+        if (todo.id.toString() !== req.params.id) {
+            return true;
+        }
+        else {
+            return false;
         }
     });
-    res.send(`This is an updated list of all my to do items: ${res.send(todoList)}`)
+    res.send(todoList)
 });
 
 app.listen(3000, function(){
