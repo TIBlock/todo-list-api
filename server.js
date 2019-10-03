@@ -1,34 +1,64 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var uuidv1 = require('uuid/v1');
+const express = require('express');
+const bodyParser = require('body-parser');
 
-var app = express();
+const uuidv1 = require('uuid/v1');
+
+const dbConfigs = require('./knexfile.js')
+const db = require('knex')(dbConfigs.development)
+
+const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-var todoList = [
-    {
-        id: "7780a5d0-dc8d-11e9-8c15-3763a3a5062c",
-        todo: "Implement a REST API",
-        isComplete: false
-    }
-];
+const port = 3000
+
 
 // GET /api/todos
 
 app.get('/api/todos', function (req, res, nextFn) {
-    res.send(`This is a list of all my to do items: ${res.send(todoList)}`)
+    getAllTodos()
+    .then(function (allTodos) {
+      res.send('<pre>' + JSON.stringify(allTodos, null, 4) + '</pre>')
+    //   res.send('<ul>' + allTodos.map(renderCohort).join('') + '</ul>')
+    })
+    // res.send(`This is a list of all my to do items: ${res.send(todoList)}`)
 });
 
 // GET /api/todos/:id
 
-app.get('/api/todos/:id', function (req, res, nextFn) {
-    const todoItem = todoList.find(function(todo) {
-        if (todo.id.toString() === req.params.id) {
-            return res.send(todo);
-        }
-    });
-});
+app.get('/api/todos/:slug', function (req, res, nextFn) {
+    console.log(req.params.slug)
+    let slug =  '"' + req.params.slug + '"'
+    function getTodoItem(slug) {
+    return knex('todos')
+        .where({ slug: slug})
+        .then( (todo) => {
+            if(todo.length === 1) {
+                res.send('<pre>' + JSON.stringify(todo, null, 4) + '</pre>')
+            } else {
+                res.status(404).send('todo not found :(')
+            }
+        })
+    }
+})
+
+
+    // getOneTodo(req.params.slug)
+    // .then(function (todo) {
+    //   if (todo.length === 1) {
+    //     res.send('<pre>' + JSON.stringify(todo[0]) + '</pre>')
+    //   } else {
+    //     res.status(404).send('todo not found :(')
+    //   }
+    // })
+
+    // const todoItem = todoList.find(function(todo) {
+    //     if (todo.id.toString() === req.params.id) {
+    //         return res.send(todo);
+    //     }
+    // });
+
+
 
 // POST /api/todos
 
@@ -61,7 +91,6 @@ app.put('/api/todos/:id', function (req, res, nextFn) {
 // DELETE /api/todos/:id
 
 app.delete('/api/todos/:id', function (req, res, nextFn) {
-    console.log(req.params)
     todoList = todoList.filter((todo) => {
         if (todo.id.toString() !== req.params.id) {
             return true;
@@ -73,6 +102,38 @@ app.delete('/api/todos/:id', function (req, res, nextFn) {
     res.send(todoList)
 });
 
-app.listen(3000, function(){
-    console.log('You got lots to do on port 3000!');
-})
+app.listen(port, function () {
+    console.log('Listening on port ' + port + ' 👍')
+  });
+
+
+function renderTodo (todo) {
+    return `
+      <li><a href="/api/todos/${todo.slug}">${todo.title}</a></li>
+    `
+}
+
+
+
+  // -----------------------------------------------------
+// Database Stuff
+
+const getAllTodosQuery = `
+SELECT *
+FROM todos
+`
+
+function getAllTodos () {
+    return db.raw(getAllTodosQuery)
+}
+
+
+
+// function getOneTodo (slug) {
+//     return 
+//         knex('todos')
+//             .where({ slug: slug})
+//             .then( (todo) => {
+//                 res.send('<pre>' + JSON.stringify(todo, null, 4) + '</pre>')
+//             }
+//             )};

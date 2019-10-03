@@ -10,8 +10,11 @@
   "author": "Adam Szaruga",
   "license": "ISC",
   "dependencies": {
-    "body-parser": "^1.18.3",
-    "express": "^4.16.4",
-    "uuid": "^3.3.3"
+    "body-parser": "1.18.3",
+    "express": "4.16.4",
+    "nodemon": "1.19.3",
+    "pg": "7.12.1",
+    "sqlite3": "4.1.0",
+    "uuid": "3.3.3"
   }
 }
