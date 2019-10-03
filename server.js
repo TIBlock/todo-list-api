@@ -18,58 +18,38 @@ const port = 3000
 app.get('/api/todos', function (req, res, nextFn) {
     getAllTodos()
     .then(function (allTodos) {
-      res.send('<pre>' + JSON.stringify(allTodos, null, 4) + '</pre>')
-    //   res.send('<ul>' + allTodos.map(renderCohort).join('') + '</ul>')
+    //   res.send('<pre>' + JSON.stringify(allTodos, null, 4) + '</pre>')
+    if (allTodos) {
+        res.send('<ul>' + allTodos.map(renderTodo).join('') + '</ul>')
+      } else {
+        res.status(404).send('Todos not found 😬')
+      }
     })
-    // res.send(`This is a list of all my to do items: ${res.send(todoList)}`)
 });
 
 // GET /api/todos/:id
 
 app.get('/api/todos/:slug', function (req, res, nextFn) {
     console.log(req.params.slug)
-    let slug =  '"' + req.params.slug + '"'
-    function getTodoItem(slug) {
-    return knex('todos')
-        .where({ slug: slug})
-        .then( (todo) => {
-            if(todo.length === 1) {
-                res.send('<pre>' + JSON.stringify(todo, null, 4) + '</pre>')
-            } else {
-                res.status(404).send('todo not found :(')
-            }
+    getOneTodo(req.params.slug)
+    .then(function (todo) {
+        if (todo.length === 1) {
+          res.send('<pre>' + JSON.stringify(todo[0]) + '</pre>')
+        } else {
+          res.status(404).send('Todo not found 😬')
+        }
         })
-    }
-})
-
-
-    // getOneTodo(req.params.slug)
-    // .then(function (todo) {
-    //   if (todo.length === 1) {
-    //     res.send('<pre>' + JSON.stringify(todo[0]) + '</pre>')
-    //   } else {
-    //     res.status(404).send('todo not found :(')
-    //   }
-    // })
-
-    // const todoItem = todoList.find(function(todo) {
-    //     if (todo.id.toString() === req.params.id) {
-    //         return res.send(todo);
-    //     }
-    // });
-
-
+    })
 
 // POST /api/todos
 
 app.post('/api/todos', function (req, res, nextFn) {
-    newTodo = { 
-        id: uuidv1(), 
-        todo: req.body.todo,
-        isComplete: false,
-    };
-    todoList.push(newTodo);
-    res.send(`This is an updated list of all my to do items: ${res.send(todoList)}`)
+    console.log(req.body)
+    insertTodo(req.body)
+    .then(function (allTodos) {
+        // res.send('<ul>' + allTodos.map(renderTodo).join('') + '</ul>')
+        res.send('<ul>Added to do Successfully!</ul>')
+    })
 });
 
 // PUT /api/todos/:id
@@ -103,13 +83,13 @@ app.delete('/api/todos/:id', function (req, res, nextFn) {
 });
 
 app.listen(port, function () {
-    console.log('Listening on port ' + port + ' 👍')
+    console.log('Listening on port ' + port + ' 🎉🎉🎉')
   });
 
 
 function renderTodo (todo) {
     return `
-      <li><a href="/api/todos/${todo.slug}">${todo.title}</a></li>
+      <li><a href="/api/todos/${todo.slug}">${todo.todo_item}</a></li>
     `
 }
 
@@ -123,11 +103,22 @@ SELECT *
 FROM todos
 `
 
+function insertTodo(todoData) {
+    
+    let todo_item = todoData.todo_item
+    console.log(todo_item)
+    let slug = uuidv1()
+
+    return db.raw("INSERT INTO todos(todo_item, slug, isActive) VALUES (?, ?, true)", [todo_item, slug])
+}
+
 function getAllTodos () {
     return db.raw(getAllTodosQuery)
 }
 
-
+function getOneTodo (slug) {
+    return db.raw("SELECT * FROM todos WHERE slug = ?", [slug])
+  }
 
 // function getOneTodo (slug) {
 //     return 
