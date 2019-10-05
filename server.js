@@ -1,28 +1,31 @@
 const fs = require('fs');
+
+//Express Server
 const express = require('express');
 const app = express();
 const port = 3000;
 const bodyParser = require('body-parser');
-
-
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static('public'))
+app.use(express.static('public'));
 
-const dbConfigs = require('./knexfile.js');
-const db = require('knex')(dbConfigs.development);
-
-const mustache = require('mustache')
-
+//Modules
+const log = require('./modules/logging.js');
+const getDB = require('./modules/db/todos.js');
+const mustache = require('mustache');
 const uuidv1 = require('uuid/v1');
+//-------
+
+//To Delete
+// const dbConfigs = require('./knexfile.js');
+// const db = require('knex')(dbConfigs.development);
 
 const homepageTemplate = fs.readFileSync('./templates/homepage.mustache', 'utf8');
 app.use(express.urlencoded({extended:false}))
 
 
 app.get('/api/todos', function (req, res) {
-    getAllTodos()
+  getDB.getAllTodos()
       .then(function (allTodos) {
           if(allTodos) {
             res.send(mustache.render(homepageTemplate, { todosListHTML: renderAllTodos(allTodos) }))
@@ -32,19 +35,19 @@ app.get('/api/todos', function (req, res) {
       });
   });
 
-  app.post('/api/todos', function (req, res, nextFn) {
-    insertTodo(req.body)
-    .then(function (allTodos) {
-      console.log('Added todo successfully')
-      displayTodos()
-    })
+app.post('/api/todos', function (req, res, nextFn) {
+  getDB.insertTodo(req.body)
+  .then(function (allTodos) {
+    console.log('Added todo successfully')
+    displayTodos()
+  })
 });
 
 
 // GET /api/todos/:slug
 
 app.get('/api/todos/:slug', function (req, res, nextFn) {
-    getOneTodo(req.params.slug)
+  getDB.getOneTodo(req.params.slug)
     .then(function (todo) {
         if (todo.length === 1) {
           res.send('<pre>' + JSON.stringify(todo[0]) + '</pre>')
@@ -78,43 +81,17 @@ app.put('/api/todos/:slug', function (req, res, nextFn) {
 // DELETE /api/todos/:id
 
 app.delete('/api/todos', function (req, res, nextFn) {
-    console.log(req.body.slug)
-    deleteTodo(req.body.slug)
+    log.info(req.body.slug);
+    getDB.deleteTodo(req.body.slug)
     .then(function (result) {
         res.send('<ul>Removed todo Successfully!</ul>')
     })
-
-    // .then(function (todo) {
-    //     if (todo !== req.body) {
-    //         return true;
-    //     }
-    //     else {
-    //         return false;
-    //     }
-    // })
-
-    // getAllTodos()
-    // .then(function (allTodos) {
-    // //   res.send('<pre>' + JSON.stringify(allTodos, null, 4) + '</pre>')
-    // if (allTodos) {
-    //     res.send('<ul>' + allTodos.map(renderTodo).join('') + '</ul>')
-    //   } else {
-    //     res.status(404).send('Todos not found 😬')
-    //   }
-    // })   
-    // todoList = todoList.filter((todo) => {
-    //     if (todo.slug !== req.params.slug) {
-    //         return true;
-    //     }
-    //     else {
-    //         return false;
-    //     }
-    // });
-    // res.send(todoList)
 });
 
 app.listen(port, function () {
-    console.log('Listening on port ' + port + ' 🎉🎉🎉')
+    log.info('Listening on port ' + port + ' 🎉🎉🎉');
+    // log.warn('This is a warning');
+    // log.error('This is an error');
   });
 
 
@@ -132,54 +109,3 @@ function renderTodo (todo) {
   function renderAllTodos (allTodos) {
     return '<ul>' + allTodos.map(renderTodo).join('') + '</ul>'
   }
-  
-  // -----------------------------------------------------------------------------
-
-
-  // -----------------------------------------------------
-// Database Stuff
-
-const getAllTodosQuery = `
-SELECT *
-FROM todos
-`
-
-function displayTodos (todoData) {
-  getAllTodos()
-      .then(function (allTodos) {
-          if(allTodos) {
-            res.send(mustache.render(homepageTemplate, { todosListHTML: renderAllTodos(allTodos) }))
-          } else {
-            res.status(404).send('Todos not found 😬')
-        }
-      });
-}
-
-function insertTodo(todoData) {
-    let todo_item = todoData.todo_item
-    let slug = uuidv1()
-    return db.raw("INSERT INTO todos(todo_item, slug, isActive) VALUES (?, ?, true)", [todo_item, slug])
-}
-
-function getAllTodos () {
-    return db.raw(getAllTodosQuery)
-}
-
-function getOneTodo (slug) {
-    console.log(slug)
-    return db.raw("SELECT * FROM todos WHERE slug = ?", [slug])
-}
-
-function deleteTodo (slug) {
-    console.log("deleteTodo  " + slug)
-    return db.raw("DELETE FROM todos WHERE slug = ?", [slug]);
-}
-
-// function getOneTodo (slug) {
-//     return 
-//         knex('todos')
-//             .where({ slug: slug})
-//             .then( (todo) => {
-//                 res.send('<pre>' + JSON.stringify(todo, null, 4) + '</pre>')
-//             }
-//             )};
