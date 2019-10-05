@@ -1,20 +1,35 @@
+const fs = require('fs');
 const express = require('express');
 const bodyParser = require('body-parser');
 
+const mustache = require('mustache')
+
 const uuidv1 = require('uuid/v1');
 
-const dbConfigs = require('./knexfile.js')
-const db = require('knex')(dbConfigs.development)
+const dbConfigs = require('./knexfile.js');
+const db = require('knex')(dbConfigs.development);
 
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-const port = 3000
+const port = 3000;
 
+const homepageTemplate = fs.readFileSync('./templates/homepage.mustache', 'utf8');
 
+app.get('/', function (req, res) {
+    getAllTodos()
+      .then(function (allTodos) {
+          if(allTodos) {
+            res.send(mustache.render(homepageTemplate, { todosListHTML: renderAllTodos(allTodos) }))
+          } else {
+            res.status(404).send('Todos not found 😬')
+        }
+      });
+  });
+
+  app.use(express.urlencoded({extended:false}))
 // GET /api/todos
-
 app.get('/api/todos', function (req, res, nextFn) {
     getAllTodos()
     .then(function (allTodos) {
@@ -24,13 +39,12 @@ app.get('/api/todos', function (req, res, nextFn) {
       } else {
         res.status(404).send('Todos not found 😬')
       }
-    })
+    });
 });
 
-// GET /api/todos/:id
+// GET /api/todos/:slug
 
 app.get('/api/todos/:slug', function (req, res, nextFn) {
-    console.log(req.params.slug)
     getOneTodo(req.params.slug)
     .then(function (todo) {
         if (todo.length === 1) {
@@ -44,17 +58,17 @@ app.get('/api/todos/:slug', function (req, res, nextFn) {
 // POST /api/todos
 
 app.post('/api/todos', function (req, res, nextFn) {
-    console.log(req.body)
     insertTodo(req.body)
     .then(function (allTodos) {
         // res.send('<ul>' + allTodos.map(renderTodo).join('') + '</ul>')
-        res.send('<ul>Added to do Successfully!</ul>')
+        res.send('<ul>Added todo Successfully!</ul>')
     })
 });
 
-// PUT /api/todos/:id
+// PUT /api/todos/:slug
+// Still need to work on this, not totally imporant yet. Need to delete items first. 
 
-app.put('/api/todos/:id', function (req, res, nextFn) {
+app.put('/api/todos/:slug', function (req, res, nextFn) {
     const todoItem = todoList.find(function(todo) {
         if (todo.id === req.params.id) {
             let updatedTodo = {
@@ -70,16 +84,40 @@ app.put('/api/todos/:id', function (req, res, nextFn) {
 
 // DELETE /api/todos/:id
 
-app.delete('/api/todos/:id', function (req, res, nextFn) {
-    todoList = todoList.filter((todo) => {
-        if (todo.id.toString() !== req.params.id) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    });
-    res.send(todoList)
+app.delete('/api/todos', function (req, res, nextFn) {
+    console.log(req.body.slug)
+    deleteTodo(req.body.slug)
+    .then(function (result) {
+        res.send('<ul>Removed todo Successfully!</ul>')
+    })
+
+    // .then(function (todo) {
+    //     if (todo !== req.body) {
+    //         return true;
+    //     }
+    //     else {
+    //         return false;
+    //     }
+    // })
+
+    // getAllTodos()
+    // .then(function (allTodos) {
+    // //   res.send('<pre>' + JSON.stringify(allTodos, null, 4) + '</pre>')
+    // if (allTodos) {
+    //     res.send('<ul>' + allTodos.map(renderTodo).join('') + '</ul>')
+    //   } else {
+    //     res.status(404).send('Todos not found 😬')
+    //   }
+    // })   
+    // todoList = todoList.filter((todo) => {
+    //     if (todo.slug !== req.params.slug) {
+    //         return true;
+    //     }
+    //     else {
+    //         return false;
+    //     }
+    // });
+    // res.send(todoList)
 });
 
 app.listen(port, function () {
@@ -87,12 +125,22 @@ app.listen(port, function () {
   });
 
 
+
+
+// -----------------------------------------------------------------------------
+// HTML Rendering
+
 function renderTodo (todo) {
     return `
       <li><a href="/api/todos/${todo.slug}">${todo.todo_item}</a></li>
     `
 }
 
+  function renderAllTodos (allTodos) {
+    return '<ul>' + allTodos.map(renderTodo).join('') + '</ul>'
+  }
+  
+  // -----------------------------------------------------------------------------
 
 
   // -----------------------------------------------------
@@ -104,11 +152,8 @@ FROM todos
 `
 
 function insertTodo(todoData) {
-    
     let todo_item = todoData.todo_item
-    console.log(todo_item)
     let slug = uuidv1()
-
     return db.raw("INSERT INTO todos(todo_item, slug, isActive) VALUES (?, ?, true)", [todo_item, slug])
 }
 
@@ -117,8 +162,14 @@ function getAllTodos () {
 }
 
 function getOneTodo (slug) {
+    console.log(slug)
     return db.raw("SELECT * FROM todos WHERE slug = ?", [slug])
-  }
+}
+
+function deleteTodo (slug) {
+    console.log("deleteTodo  " + slug)
+    return db.raw("DELETE FROM todos WHERE slug = ?", [slug]);
+}
 
 // function getOneTodo (slug) {
 //     return 
