@@ -43,6 +43,15 @@ app.post('/api/todos', function (req, res, nextFn) {
   })
 });
 
+function slugify (str) {
+  return str.toLowerCase()
+            .replace(/\s+/g,'-')
+}
+
+app.post('/api/todos', function (req, res, nextFn) {
+  const todotitle
+});
+
 
 // GET /api/todos/:slug
 

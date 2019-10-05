@@ -1,7 +1,5 @@
 const {db} = require('./dbConnection.js')
 
-
-
 const getAllTodosQuery = `
 SELECT *
 FROM todos
