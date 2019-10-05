@@ -8,15 +8,15 @@ function now () {
 //Error logging functions.
 
 function info (msg) {
-    console.log( 'INFO [' + now() + '] ' + msg);
+    console.log( '[' + now() + '] INFO: ' + msg);
 }
 
 function warn (msg) {
-    console.log( 'WARN [' + now() + '] ' + msg);
+    console.log( '[' + now() + '] WARN: ' + msg);
 }
 
 function error (msg) {
-    console.log( 'ERROR [' + now() + '] ' + msg);
+    console.log( '[' + now() + '] ERROR: ' + msg);
 }
 
 //Module export.
