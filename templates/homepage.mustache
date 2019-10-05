@@ -2,23 +2,30 @@
 <html class="no-js" lang="">
 <head>
   <meta charset="utf-8">
-  <title>Headmaster2</title>
+  <title>Blocker Todos</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="/css/main.css">
 </head>
 
 <body>
-  <h1>TodoApp Homepage!</h1>
-  <main>{{{todosListHTML}}}</main>
+  <main>
+    <div id="app_container">
 
-  <form action="/api/todos" method="post">
-    <label>New Todo:</label>
-    <input type="text" name="title" />
+      <h1>TodoApp Homepage!</h1>
+      <form id="todo_form" action="/api/todos" method="post">
+        <label>New Todo:</label>
+        <input type="text" name="todo_item" />
+        <button type="submit">Add Todo</button>
+      </form>
+      <br>
+      <div>Things to do:</div>
+      <div id="todo_list">{{{todosListHTML}}} </div>
+      
+    </div>
+  </main>
 
-    <button type="submit">Add Todo</button>
-  </form>
 </body>
 
 </html>

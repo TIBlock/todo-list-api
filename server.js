@@ -1,23 +1,27 @@
 const fs = require('fs');
 const express = require('express');
+const app = express();
+const port = 3000;
 const bodyParser = require('body-parser');
+
+
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static('public'))
+
+const dbConfigs = require('./knexfile.js');
+const db = require('knex')(dbConfigs.development);
 
 const mustache = require('mustache')
 
 const uuidv1 = require('uuid/v1');
 
-const dbConfigs = require('./knexfile.js');
-const db = require('knex')(dbConfigs.development);
-
-const app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
-const port = 3000;
-
 const homepageTemplate = fs.readFileSync('./templates/homepage.mustache', 'utf8');
+app.use(express.urlencoded({extended:false}))
 
-app.get('/', function (req, res) {
+
+app.get('/api/todos', function (req, res) {
     getAllTodos()
       .then(function (allTodos) {
           if(allTodos) {
@@ -28,19 +32,14 @@ app.get('/', function (req, res) {
       });
   });
 
-  app.use(express.urlencoded({extended:false}))
-// GET /api/todos
-app.get('/api/todos', function (req, res, nextFn) {
-    getAllTodos()
+  app.post('/api/todos', function (req, res, nextFn) {
+    insertTodo(req.body)
     .then(function (allTodos) {
-    //   res.send('<pre>' + JSON.stringify(allTodos, null, 4) + '</pre>')
-    if (allTodos) {
-        res.send('<ul>' + allTodos.map(renderTodo).join('') + '</ul>')
-      } else {
-        res.status(404).send('Todos not found 😬')
-      }
-    });
+      console.log('Added todo successfully')
+      displayTodos()
+    })
 });
+
 
 // GET /api/todos/:slug
 
@@ -57,13 +56,7 @@ app.get('/api/todos/:slug', function (req, res, nextFn) {
 
 // POST /api/todos
 
-app.post('/api/todos', function (req, res, nextFn) {
-    insertTodo(req.body)
-    .then(function (allTodos) {
-        // res.send('<ul>' + allTodos.map(renderTodo).join('') + '</ul>')
-        res.send('<ul>Added todo Successfully!</ul>')
-    })
-});
+
 
 // PUT /api/todos/:slug
 // Still need to work on this, not totally imporant yet. Need to delete items first. 
@@ -132,7 +125,7 @@ app.listen(port, function () {
 
 function renderTodo (todo) {
     return `
-      <li><a href="/api/todos/${todo.slug}">${todo.todo_item}</a></li>
+      <li id="todo_item"><a href="/api/todos/${todo.slug}">${todo.todo_item}</a></li>
     `
 }
 
@@ -150,6 +143,17 @@ const getAllTodosQuery = `
 SELECT *
 FROM todos
 `
+
+function displayTodos (todoData) {
+  getAllTodos()
+      .then(function (allTodos) {
+          if(allTodos) {
+            res.send(mustache.render(homepageTemplate, { todosListHTML: renderAllTodos(allTodos) }))
+          } else {
+            res.status(404).send('Todos not found 😬')
+        }
+      });
+}
 
 function insertTodo(todoData) {
     let todo_item = todoData.todo_item
