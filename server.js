@@ -14,12 +14,9 @@ const log = require('./modules/logging.js');
 const getDB = require('./modules/db/todos.js');
 const mustache = require('mustache');
 const uuidv1 = require('uuid/v1');
-//-------
+const {renderTodo, renderAllTodos} = require('./modules/rendering/rendering.js');
 
-//To Delete
-// const dbConfigs = require('./knexfile.js');
-// const db = require('knex')(dbConfigs.development);
-
+//Templating
 const homepageTemplate = fs.readFileSync('./templates/homepage.mustache', 'utf8');
 app.use(express.urlencoded({extended:false}))
 
@@ -54,7 +51,7 @@ app.get('/api/todos/:slug', function (req, res, nextFn) {
           res.status(404).send('Todo not found 😬')
         }
         })
-    })
+    });
 
 // POST /api/todos
 
@@ -80,11 +77,12 @@ app.put('/api/todos/:slug', function (req, res, nextFn) {
 // DELETE /api/todos/:id
 
 app.delete('/api/todos', function (req, res, nextFn) {
-    log.info(req.body.slug);
-    getDB.deleteTodo(req.body.slug)
-    .then(function (result) {
-        res.send('<ul>Removed todo Successfully!</ul>')
-    })
+    log.info(req.body);
+    log.info(JSON.parse(req.body))
+    // getDB.deleteTodo(req.body)
+    // .then(function (result) {
+    //     res.send('<ul>Removed todo Successfully!</ul>')
+    // })
 });
 
 app.listen(port, function () {
@@ -93,18 +91,6 @@ app.listen(port, function () {
     // log.error('This is an error');
   });
 
-
-
-
-// -----------------------------------------------------------------------------
-// HTML Rendering - Separate to another module. 
-
-function renderTodo (todo) {
-    return `
-      <li id="todo_item"><a href="/api/todos/${todo.slug}">${todo.todo_item}</a></li>
-    `
+function getElInfo(){
+  console.log("hello")
 }
-
-  function renderAllTodos (allTodos) {
-    return '<ul>' + allTodos.map(renderTodo).join('') + '</ul>'
-  }
