@@ -43,16 +43,6 @@ app.post('/api/todos', function (req, res, nextFn) {
   })
 });
 
-function slugify (str) {
-  return str.toLowerCase()
-            .replace(/\s+/g,'-')
-}
-
-app.post('/api/todos', function (req, res, nextFn) {
-  const todotitle
-});
-
-
 // GET /api/todos/:slug
 
 app.get('/api/todos/:slug', function (req, res, nextFn) {
@@ -107,7 +97,7 @@ app.listen(port, function () {
 
 
 // -----------------------------------------------------------------------------
-// HTML Rendering
+// HTML Rendering - Separate to another module. 
 
 function renderTodo (todo) {
     return `
