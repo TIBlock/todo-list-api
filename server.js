@@ -78,7 +78,8 @@ app.put('/api/todos/:slug', function (req, res, nextFn) {
 
 app.delete('/api/todos', function (req, res, nextFn) {
     log.info(req.body);
-    log.info(JSON.parse(req.body))
+    console.dir(req.body)
+    // log.info(JSON.parse(req.body))
     // getDB.deleteTodo(req.body)
     // .then(function (result) {
     //     res.send('<ul>Removed todo Successfully!</ul>')
