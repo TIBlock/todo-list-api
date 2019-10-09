@@ -9,6 +9,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static('public'));
 
+//Authentication
+const cors = require('cors');
+const session = require('express-session')
+const passport = require('passport')
+
 //Modules
 const log = require('./modules/logging.js');
 const getDB = require('./modules/db/todos.js');
