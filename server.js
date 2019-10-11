@@ -4,54 +4,13 @@ const fs = require('fs');
 const express = require('express');
 const app = express();
 const port = 3000;
+const {db} = require('./modules/db/dbConnection')
+
 // const port = process.env.PORT || 3000;
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
-
-//???
-app.get('/authentication', (req, res) => res.sendFile('auth.html', { root : __dirname}));
-
-//Authentication
-const passport = require('passport');
-app.use(passport.initialize());
-app.use(passport.session());
-const LocalStrategy = require('passport-local').Strategy;
-
-passport.use(new LocalStrategy(
-  function(username, password, done) {
-      UserDetails.findOne({
-        username: username
-      }, function(err, user) {
-        if (err) {
-          return done(err);
-        }
-
-        if (!user) {
-          return done(null, false);
-        }
-
-        if (user.password != password) {
-          return done(null, false);
-        }
-        return done(null, user);
-      });
-  }
-));
-
-app.post('/',
-  passport.authenticate('local', { failureRedirect: '/error' }),
-  function(req, res) {
-    res.redirect('/success?username='+req.user.username);
-  });
-
-app.get('/success', (req, res) => res.send("Welcome "+req.query.username+"!!"));
-app.get('/error', (req, res) => res.send("error logging in"));
-
-passport.serializeUser((user, cb) => {
-  cb(null, user.id);
-});
 
 //Modules
 const log = require('./modules/logging.js');
@@ -59,11 +18,8 @@ const getDB = require('./modules/db/todos.js');
 const mustache = require('mustache');
 const {renderTodo, renderAllTodos} = require('./modules/rendering/rendering.js');
 
-
 //Templating
 const homepageTemplate = fs.readFileSync('./templates/homepage.mustache', 'utf8');
-app.use(express.urlencoded({extended:false}))
-
 
 app.get('/api/todos', (req, res) => {
   getDB.getAllTodos()
@@ -80,7 +36,7 @@ app.post('/api/todos', (req, res, nextFn) => {
   getDB.insertTodo(req.body)
   .then((allTodos) => {
     console.log('Added todo successfully')
-    displayTodos()
+    displayTodos();
   })
 });
 
@@ -122,7 +78,7 @@ app.put('/api/todos/:slug', (req, res, nextFn) => {
 
 app.delete('/api/todos', (req, res, nextFn) => {
     log.info(req.body);
-    console.dir(req.body)
+    // console.dir(req.body)
     // log.info(JSON.parse(req.body))
     // getDB.deleteTodo(req.body)
     // .then(function (result) {
@@ -139,3 +95,59 @@ app.listen(port, () => {
 // function getElInfo(){
 //   console.log("hello")
 // }
+
+
+
+
+
+
+//Authentication
+const passport = require('passport');
+app.use(passport.initialize());
+app.use(passport.session());
+const LocalStrategy = require('passport-local').Strategy;
+
+passport.use(new LocalStrategy((email, password, done) => {
+  console.log('got auth request') 
+  db('users')
+  .where({email: email})
+  .then((userRows) => {
+    let user = userRows[0]
+    if (!user) {
+      return done(null, false);
+    }
+    
+    if (user.password != password) {
+      return done(null, false);
+    }
+    return done(null, user);
+  })
+  .catch(err => {
+    console.log('auth error - ', err)
+  });
+}
+));
+
+app.get('/auth', (req, res) => res.sendFile('auth.html', { root : __dirname}));
+
+
+app.post('/auth',
+  passport.authenticate('local', { failureRedirect: '/error' }),
+  function(req, res) {
+    req.session.passport
+    res.redirect('/success?email='+req.user.email);
+  }
+  );
+
+app.get('/success', (req, res) => res.send("Welcome "+req.query.email+"!!"));
+app.get('/error', (req, res) => res.send("error logging in"));
+
+passport.serializeUser(function(user, cb) {
+  cb(null, user.id);
+});
+
+passport.deserializeUser(function(id, cb) {
+  User.findById(id, function(err, user) {
+    cb(err, user);
+  });
+});

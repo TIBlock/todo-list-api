@@ -14,3 +14,5 @@ const db = require('knex')(dbConfigs.development);
 module.exports = {
     db: db
 }
+
+  
