@@ -4,31 +4,70 @@ const fs = require('fs');
 const express = require('express');
 const app = express();
 const port = 3000;
+// const port = process.env.PORT || 3000;
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static('public'));
 
+//???
+app.get('/authentication', (req, res) => res.sendFile('auth.html', { root : __dirname}));
+
 //Authentication
-const cors = require('cors');
-const session = require('express-session')
-const passport = require('passport')
+const passport = require('passport');
+app.use(passport.initialize());
+app.use(passport.session());
+const LocalStrategy = require('passport-local').Strategy;
+
+passport.use(new LocalStrategy(
+  function(username, password, done) {
+      UserDetails.findOne({
+        username: username
+      }, function(err, user) {
+        if (err) {
+          return done(err);
+        }
+
+        if (!user) {
+          return done(null, false);
+        }
+
+        if (user.password != password) {
+          return done(null, false);
+        }
+        return done(null, user);
+      });
+  }
+));
+
+app.post('/',
+  passport.authenticate('local', { failureRedirect: '/error' }),
+  function(req, res) {
+    res.redirect('/success?username='+req.user.username);
+  });
+
+app.get('/success', (req, res) => res.send("Welcome "+req.query.username+"!!"));
+app.get('/error', (req, res) => res.send("error logging in"));
+
+passport.serializeUser((user, cb) => {
+  cb(null, user.id);
+});
 
 //Modules
 const log = require('./modules/logging.js');
 const getDB = require('./modules/db/todos.js');
 const mustache = require('mustache');
-const uuidv1 = require('uuid/v1');
 const {renderTodo, renderAllTodos} = require('./modules/rendering/rendering.js');
+
 
 //Templating
 const homepageTemplate = fs.readFileSync('./templates/homepage.mustache', 'utf8');
 app.use(express.urlencoded({extended:false}))
 
 
-app.get('/api/todos', function (req, res) {
+app.get('/api/todos', (req, res) => {
   getDB.getAllTodos()
-      .then(function (allTodos) {
+      .then((allTodos) => {
           if(allTodos) {
             res.send(mustache.render(homepageTemplate, { todosListHTML: renderAllTodos(allTodos) }))
           } else {
@@ -37,9 +76,9 @@ app.get('/api/todos', function (req, res) {
       });
   });
 
-app.post('/api/todos', function (req, res, nextFn) {
+app.post('/api/todos', (req, res, nextFn) => {
   getDB.insertTodo(req.body)
-  .then(function (allTodos) {
+  .then((allTodos) => {
     console.log('Added todo successfully')
     displayTodos()
   })
@@ -47,9 +86,9 @@ app.post('/api/todos', function (req, res, nextFn) {
 
 // GET /api/todos/:slug
 
-app.get('/api/todos/:slug', function (req, res, nextFn) {
+app.get('/api/todos/:slug', (req, res, nextFn) => {
   getDB.getOneTodo(req.params.slug)
-    .then(function (todo) {
+    .then((todo) => {
         if (todo.length === 1) {
           res.send('<pre>' + JSON.stringify(todo[0]) + '</pre>')
         } else {
@@ -65,8 +104,8 @@ app.get('/api/todos/:slug', function (req, res, nextFn) {
 // PUT /api/todos/:slug
 // Still need to work on this, not totally imporant yet. Need to delete items first. 
 
-app.put('/api/todos/:slug', function (req, res, nextFn) {
-    const todoItem = todoList.find(function(todo) {
+app.put('/api/todos/:slug', (req, res, nextFn) => {
+    const todoItem = todoList.find((todo) => {
         if (todo.id === req.params.id) {
             let updatedTodo = {
                 id: todo.id, 
@@ -81,7 +120,7 @@ app.put('/api/todos/:slug', function (req, res, nextFn) {
 
 // DELETE /api/todos/:id
 
-app.delete('/api/todos', function (req, res, nextFn) {
+app.delete('/api/todos', (req, res, nextFn) => {
     log.info(req.body);
     console.dir(req.body)
     // log.info(JSON.parse(req.body))
@@ -91,12 +130,12 @@ app.delete('/api/todos', function (req, res, nextFn) {
     // })
 });
 
-app.listen(port, function () {
+app.listen(port, () => {
     log.info('Listening on port ' + port + ' 🎉🎉🎉');
     // log.warn('This is a warning');
     // log.error('This is an error');
   });
 
-function getElInfo(){
-  console.log("hello")
-}
+// function getElInfo(){
+//   console.log("hello")
+// }

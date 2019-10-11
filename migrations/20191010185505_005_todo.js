@@ -4,6 +4,7 @@ exports.up = function(knex) {
         table.string('todo_item')
         table.string('slug')
         table.boolean('isActive')
+        table.timestamps(true, true)
     })
 };
 
