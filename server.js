@@ -21,7 +21,8 @@ const {renderTodo, renderAllTodos} = require('./modules/rendering/rendering.js')
 //Templating
 const homepageTemplate = fs.readFileSync('./templates/homepage.mustache', 'utf8');
 
-app.get('/api/todos', (req, res) => {
+app.get('/api/todos', ensureAuth, (req, res) => {
+  console.log("user - ", req.user)
   getDB.getAllTodos()
       .then((allTodos) => {
           if(allTodos) {
@@ -128,6 +129,7 @@ passport.use(new LocalStrategy((email, password, done) => {
 }
 ));
 
+
 app.get('/auth', (req, res) => res.sendFile('auth.html', { root : __dirname}));
 
 
@@ -143,6 +145,8 @@ app.get('/success', (req, res) => res.send("Welcome "+req.query.email+"!!"));
 app.get('/error', (req, res) => res.send("error logging in"));
 
 passport.serializeUser(function(user, cb) {
+  console.log("seiralize user -", user.id)
+
   cb(null, user.id);
 });
 
@@ -151,3 +155,13 @@ passport.deserializeUser(function(id, cb) {
     cb(err, user);
   });
 });
+
+function ensureAuth(req, res, next) {
+  if (passport.authenticate('local')) {
+    console.log("user -", req.user)
+    return next();
+  }
+
+  console.log('ensureAuth failed! ')
+  res.redirect('/auth')
+}
