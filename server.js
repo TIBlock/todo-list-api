@@ -21,8 +21,8 @@ const {renderTodo, renderAllTodos} = require('./modules/rendering/rendering.js')
 //Templating
 const homepageTemplate = fs.readFileSync('./templates/homepage.mustache', 'utf8');
 
+
 app.get('/api/todos', ensureAuth, (req, res) => {
-  console.log("user - ", req.user)
   getDB.getAllTodos()
       .then((allTodos) => {
           if(allTodos) {
@@ -33,11 +33,15 @@ app.get('/api/todos', ensureAuth, (req, res) => {
       });
   });
 
+  app.get('/', (req, res) => {
+    res.send
+  })
+
 app.post('/api/todos', (req, res, nextFn) => {
   getDB.insertTodo(req.body)
   .then((allTodos) => {
-    console.log('Added todo successfully')
     displayTodos();
+    console.log('Added todo successfully')
   })
 });
 
@@ -96,11 +100,6 @@ app.listen(port, () => {
 // function getElInfo(){
 //   console.log("hello")
 // }
-
-
-
-
-
 
 //Authentication
 const passport = require('passport');

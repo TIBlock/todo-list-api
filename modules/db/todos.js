@@ -9,13 +9,15 @@ FROM todos
 
 function displayTodos (todoData) {
   getAllTodos()
-      .then((allTodos) => {
+      .then(
+          (allTodos) => {
           if(allTodos) {
             res.send(mustache.render(homepageTemplate, { todosListHTML: renderAllTodos(allTodos) }))
           } else {
             res.status(404).send('Todos not found 😬')
         }
-      });
+      }
+      );
 }
 
 function insertTodo(todoData) {
