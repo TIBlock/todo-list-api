@@ -10,7 +10,6 @@ function renderAllTodos (allTodos) {
     return '<ul>' + allTodos.map(renderTodo).join('') + '</ul>'
 }
 
-
 module.exports = {
     renderTodo: renderTodo,
     renderAllTodos: renderAllTodos

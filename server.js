@@ -21,7 +21,6 @@ const {renderTodo, renderAllTodos} = require('./modules/rendering/rendering.js')
 //Templating
 const homepageTemplate = fs.readFileSync('./templates/homepage.mustache', 'utf8');
 
-
 app.get('/api/todos', ensureAuth, (req, res) => {
   getDB.getAllTodos()
       .then((allTodos) => {
